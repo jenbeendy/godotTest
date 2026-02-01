@@ -50,8 +50,8 @@ func _physics_process(_delta):
 				$Sprite2D.flip_h = velocity.x < 0
 			
 			if carried_ball:
-				# Hold ball in mouth area
-				var offset = Vector2(30 if velocity.x >= 0 else -30, 20)
+				# Hold ball in mouth area (doubled for bigger dog)
+				var offset = Vector2(60 if velocity.x >= 0 else -60, 20)
 				carried_ball.global_position = global_position + offset
 			
 			if global_position.distance_to(home_position) < return_threshold:

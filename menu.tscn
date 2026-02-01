@@ -49,7 +49,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 4
 theme_override_constants/shadow_offset_y = 4
 theme_override_font_sizes/font_size = 100
-text = "FETCH QUEST"
+text = "Machac HOD"
 horizontal_alignment = 1
 
 [node name="Buttons" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
