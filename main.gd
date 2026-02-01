@@ -15,17 +15,17 @@ const GOAL_RETURNS = 5
 func _ready():
 	dog.home_node = player
 	dog.connect("ball_returned", _on_dog_ball_returned)
-	# Initially target the ball but STAY IDLE
 	dog.target_ball = ball
-	# Ensure ball is at player's feet
+	# Ensure starting position
+	_reset_ball_to_player()
+
+func _reset_ball_to_player():
 	ball.reset_to(player.global_position)
 
 func _input(event):
-	# Return to Menu
 	if event.is_action_pressed("ui_cancel") or (event is InputEventKey and event.keycode == KEY_ESCAPE):
 		get_tree().change_scene_to_file("res://menu.tscn")
 	
-	# Restart game
 	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
 		get_tree().reload_current_scene()
 
@@ -34,28 +34,31 @@ func _input(event):
 			if not ball.is_being_carried and dog.current_state == dog.State.IDLE:
 				is_dragging = true
 				drag_start_pos = event.position
-				# Snap ball to player feet once
-				ball.reset_to(player.global_position)
+				_reset_ball_to_player()
 		elif not event.pressed and is_dragging:
 			is_dragging = false
 			var drag_vector = event.position - drag_start_pos
-			throw_ball(drag_vector)
+			if drag_vector.length() > 10:
+				throw_ball(drag_vector)
 
 func throw_ball(vector):
-	# Don't throw if drag was too small
-	if vector.length() < 10:
-		return
-		
-	var force_multiplier = 5.0
+	# 1. Unfreeze the ball
 	ball.freeze = false
+	
+	# 2. Wait for the physics engine to synchronize the teleport and unfreeze
+	# We wait two frames to be absolutely sure the transform is updated in the physics server
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	
+	# 3. Apply the impulse. Since we reset_to(player) on click AND on return, 
+	# and waited for sync, it should now originate from the player.
+	var force_multiplier = 5.0
 	ball.apply_central_impulse(vector * force_multiplier)
 
 func _on_dog_ball_returned():
 	returns_count += 1
 	counter_label.text = str(returns_count)
-	
-	# Reset ball position to player's feet safely
-	ball.reset_to(player.global_position)
+	_reset_ball_to_player()
 	
 	if returns_count >= GOAL_RETURNS:
 		victory_panel.show()
